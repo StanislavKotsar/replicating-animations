@@ -34,7 +34,7 @@ class ViewController: UIViewController {
     let dot = CALayer()
     let dotLength: CGFloat = 6.0
     let dotOffset: CGFloat = 8.0
-    
+    var lastTransformScale: CGFloat = 0.0
     
     
     override func viewDidLoad() {
@@ -57,10 +57,36 @@ class ViewController: UIViewController {
     }
     
     @IBAction func actionStartMonitoring(_ sender: AnyObject) {
+        dot.backgroundColor = UIColor.green.cgColor
+        monitor.startMonitoringWithHandler { level in
+            self.meterLabel.text = String(format: "%.2f db", level)
+            let scaleFactor = max(0.2, CGFloat(level) + 50) / 2
+            let scale = CABasicAnimation(keyPath: "transform.scale.y")
+            scale.fromValue = self.lastTransformScale
+            scale.toValue = scaleFactor
+            scale.duration = 0.1
+            scale.isRemovedOnCompletion = false
+            scale.fillMode = .forwards
+            self.dot.add(scale, forKey: nil)
+            self.lastTransformScale = scaleFactor
+        }
         
     }
     
     @IBAction func actionEndMonitoring(_ sender: AnyObject) {
+        monitor.stopMonitoring()
+        let scale = CABasicAnimation(keyPath: "transform.scale.y")
+        scale.toValue = 1
+        scale.duration = 0.1
+        scale.isRemovedOnCompletion = false
+        scale.fillMode = .forwards
+        self.dot.add(scale, forKey: nil)
+        
+        let tint = CABasicAnimation(keyPath: "backgroundColor")
+        tint.toValue = UIColor.magenta.cgColor
+        tint.duration = 0.1
+        tint.fillMode = .backwards
+        dot.add(tint, forKey: "dotColor")
         
         //speak after 1 second
         delay(seconds: 1.0) {
@@ -78,6 +104,7 @@ class ViewController: UIViewController {
         scale.toValue = NSValue(caTransform3D:
             CATransform3DMakeScale(1.4, 15, 1.0))
         scale.duration = 0.33
+        scale.beginTime = CACurrentMediaTime() + 0.2
         scale.repeatCount = .infinity
         scale.autoreverses = true
         scale.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -87,7 +114,7 @@ class ViewController: UIViewController {
         fade.fromValue = 1.0
         fade.toValue = 0.2
         fade.duration = 0.33
-        fade.beginTime = CACurrentMediaTime() + 0.33
+        fade.beginTime = CACurrentMediaTime() + 0.53
         fade.repeatCount = .infinity
         fade.autoreverses = true
         fade.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -97,7 +124,7 @@ class ViewController: UIViewController {
         tint.fromValue = UIColor.magenta.cgColor
         tint.toValue = UIColor.cyan.cgColor
         tint.duration = 0.66
-        tint.beginTime = CACurrentMediaTime() + 0.28
+        tint.beginTime = CACurrentMediaTime() + 0.48
         tint.fillMode = .backwards
         tint.repeatCount = .infinity
         tint.autoreverses = true
@@ -118,7 +145,7 @@ class ViewController: UIViewController {
         rotation.fromValue = 0.01
         rotation.toValue   = -0.01
         rotation.duration = 0.99
-        rotation.beginTime = CACurrentMediaTime() + 0.33
+        rotation.beginTime = CACurrentMediaTime() + 0.53
         rotation.repeatCount = .infinity
         rotation.autoreverses = true
         rotation.timingFunction = CAMediaTimingFunction(name:  .easeInEaseOut)
